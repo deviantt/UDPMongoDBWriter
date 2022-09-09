@@ -7,12 +7,20 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import test.mongo.Handlers.Handler;
+import test.mongo.Services.DateCheck;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,8 +28,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import static test.mongo.Const.Const.*;
 
 
-//TODO 1) Mongo auth(done) 2) Analog channels (done)
 @SpringBootApplication
+@EnableScheduling
 public class MongoApplication implements CommandLineRunner {
 
 	public static void main(String[] args) {
@@ -36,7 +44,7 @@ public class MongoApplication implements CommandLineRunner {
 	}
 
 	@Override
-	public void run(String... args) throws Exception {
+	public void run(String... args) {
 		ExecutorService executorService = Executors.newFixedThreadPool(2);
 		ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 		try (DatagramSocket serverSocket = new DatagramSocket(RCV_PORT);) {

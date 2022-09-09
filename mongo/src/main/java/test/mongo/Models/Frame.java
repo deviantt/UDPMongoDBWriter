@@ -1,14 +1,9 @@
 package test.mongo.Models;
 
 import lombok.Data;
-import test.mongo.CRC8;
 
-import java.io.IOException;
-import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 

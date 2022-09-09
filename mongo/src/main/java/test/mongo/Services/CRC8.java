@@ -1,4 +1,4 @@
-package test.mongo;
+package test.mongo.Services;
 
 import java.util.zip.Checksum;
 
