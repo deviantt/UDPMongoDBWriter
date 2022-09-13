@@ -26,6 +26,6 @@ public class MongoConfig
     @Bean
     public MongoTemplate mongoTemplate() throws Exception
     {
-            return new MongoTemplate(mongo(), DB_NAME);
+            return new MongoTemplate(mongo(), "SMD207");
     }
 }

@@ -40,7 +40,7 @@ public class Handler implements Runnable {
                 mongoTemplate.indexOps(String.valueOf(receiveFrame.getImei())).ensureIndex(new Index("TIM", Sort.Direction.DESC).unique());
                 mongoTemplate.insert(receiveFrame.getPackets(), String.valueOf(receiveFrame.getImei()));
                 sendAnswer(packAnswer());
-            }
+            } else System.out.println("asd");
         } catch (Exception e) {
             e.printStackTrace();
         }

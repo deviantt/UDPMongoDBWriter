@@ -26,10 +26,10 @@ public class DateCheck {
         this.mongoTemplate = mongoTemplate;
     }
 
-    @PostConstruct
-    private void onStartup() {
-        dateCheck();
-    }
+//    @PostConstruct
+//    private void onStartup() {
+//        dateCheck();
+//    }
 
     @Scheduled(cron = "0 0 10 * * MON", zone="GMT+5:00")
     private void dateCheck() {

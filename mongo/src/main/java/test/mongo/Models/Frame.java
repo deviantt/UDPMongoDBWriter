@@ -20,32 +20,40 @@ public class Frame {
     private DatagramSocket socket;
 
     public Frame(DatagramPacket receivedPacket, DatagramSocket socket) {
+        int allPacketsSize = 0;
         this.receivedPacket = receivedPacket;
         this.socket = socket;
         byte[] data = receivedPacket.getData();
-        frameSize = (int) bytesToLong(shiftRight(Arrays.copyOfRange(data,0,2), 5));
-        byte[] header = Arrays.copyOfRange(data, 2, 9);
-        packetsQuan = data[8] & 0x3F;
+        byte[] header = Arrays.copyOfRange(data, 0, HEADER_SIZE);
+        packetsQuan = data[6] & 0x07;
         for(byte each : shiftRight(header, 6)) {
             imei = (imei << 8) + (each & 0xFF);
         }
         int cursor = HEADER_SIZE;
         int realPacketSize;
         for (int i = 0; i < packetsQuan; i++) {
-            realPacketSize = ((data[cursor+7] & 0x7C) >>> 2)*CHANNEL_SIZE + 19;
+            int stateFlag = data[cursor + 4];
+            if ((stateFlag & 0x80) == 0) {
+                if ((stateFlag & 0x10) == 0) {
+                    realPacketSize = 18 + (((data[cursor + 6] >>> 3) & 0x1F) * CHANNEL_SIZE);
+                    //0 0
+                } else {
+                    realPacketSize = 7 + (((data[cursor + 6] >>> 3) & 0x1F) * CHANNEL_SIZE);
+                    // 0 1
+                }
+            } else if ((stateFlag & 0x10) == 0) {
+                realPacketSize = 18;
+                // 1 0
+            } else {
+                realPacketSize = 7;
+                // 1 1
+            }
             Packet r1 = new Packet(Arrays.copyOfRange(data, cursor, cursor + realPacketSize));
+            allPacketsSize += r1.getPacketSize();
             packets.add(r1);
             cursor += realPacketSize;
         }
-    }
-
-    public static long bytesToLong(final byte[] b) {
-        long result = 0;
-        for (int i = 0; i < 2; i++) {
-            result <<= 8;
-            result |= (b[i] & 0xFF);
-        }
-        return result;
+        frameSize = HEADER_SIZE + allPacketsSize;
     }
 
     static byte[] shiftRight(byte[] byteArray, int shiftBitCount) {
