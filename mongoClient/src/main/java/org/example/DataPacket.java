@@ -64,7 +64,6 @@ public class DataPacket {
         }
         System.out.println("Send IMEI: " + imei1 + " Packets quantity: " + (dataArray[6] & 0x07));
         System.out.println("Send size: " + (7+packetsQuan*(18+usedChannels*8)));
-        System.out.println(Long.toBinaryString(dataArray[141]));
     }
 
 
