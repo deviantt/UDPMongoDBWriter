@@ -1,10 +1,13 @@
 package test.mongo.Handlers;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import test.mongo.MongoApplication;
 import test.mongo.Services.CRC8;
 import test.mongo.Models.Frame;
 
@@ -20,6 +23,7 @@ public class Handler implements Runnable {
     private final DatagramPacket receivePacket;
     private final DatagramSocket serverSocket;
     private Frame receiveFrame;
+    private static final Logger logger = LogManager.getLogger(Handler.class);
 
 
     public Handler(DatagramPacket receivePacket, DatagramSocket serverSocket, MongoTemplate mongoTemplate) {
@@ -36,11 +40,13 @@ public class Handler implements Runnable {
         crc8.reset();
         crc8.update(Arrays.copyOfRange(receivePacket.getData(), 0, receiveFrame.getFrameSize()));
         try {
-            if (receivePacket.getData()[receiveFrame.getFrameSize()] == (byte) (crc8.getValue() & 0xff) && mongoTemplate.exists(query, "Devices")) {
-                mongoTemplate.indexOps(String.valueOf(receiveFrame.getImei())).ensureIndex(new Index("TIM", Sort.Direction.DESC).unique());
-                mongoTemplate.insert(receiveFrame.getPackets(), String.valueOf(receiveFrame.getImei()));
-                sendAnswer(packAnswer());
-            } else System.out.println("asd");
+            if (mongoTemplate.exists(query, "Devices")) {
+                if (receivePacket.getData()[receiveFrame.getFrameSize()] == (byte) (crc8.getValue() & 0xff)) {
+                    mongoTemplate.indexOps(String.valueOf(receiveFrame.getImei())).ensureIndex(new Index("TIM", Sort.Direction.DESC).unique());
+                    mongoTemplate.insert(receiveFrame.getPackets(), String.valueOf(receiveFrame.getImei()));
+                    sendAnswer(packAnswer());
+                } else logger.info("CRC check failed for device " + receiveFrame.getImei());
+            } else logger.info("Error with " + receiveFrame.getImei());
         } catch (Exception e) {
             e.printStackTrace();
         }

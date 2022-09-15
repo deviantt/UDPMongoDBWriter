@@ -7,13 +7,16 @@ import java.util.*;
 
 
 public class DataPacket {
-    private final boolean isRandomData = true;
+
+    private final long imei;
+    private final boolean isRandomData = false;
     private final int usedChannels = isRandomData ? (int) rnd(16.0, 32.0) : 16;
     private final int packetsQuan = 1;
     private final byte[] packetData = new byte[18+usedChannels*8];
     private final byte[] dataArray = new byte[7+packetsQuan*(18+usedChannels*8)+1];
     private CRC8 crc = new CRC8();
-    private final byte flags = (byte) (0b00000000 & 0xFF);
+    private final byte[] flagsMockArray = new byte[] {(byte) (0b00000000 & 0xFF), (byte) (0b10000000 & 0xFF), (byte) (0b00010000 & 0xFF), (byte) (0b10010000 & 0xFF)};
+    private final byte flags = isRandomData ? flagsMockArray[(int) rnd(0.0, 4.0)] : (byte) (0b00000000 & 0xFF);
 
 
     public byte[] getDataArray() {
@@ -23,6 +26,7 @@ public class DataPacket {
     public DataPacket(long imei) throws InterruptedException {
         crc.reset();
         int command = 5;
+        this.imei = imei;
         packHeader(imei, command, packetsQuan);
         Runnable task = () -> {
             for (int i = 0; i < packetsQuan; i++) {
@@ -217,5 +221,9 @@ public class DataPacket {
             }
         }
         return byteArray;
+    }
+
+    public long getImei() {
+        return imei;
     }
 }

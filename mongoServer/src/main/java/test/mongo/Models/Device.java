@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Data
-//@NoArgsConstructor
+@NoArgsConstructor
 @Document(collection = "Devices")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Device
