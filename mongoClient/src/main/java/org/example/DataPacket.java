@@ -7,13 +7,13 @@ import java.util.*;
 
 
 public class DataPacket {
-    private final boolean isRandomData = false;
+    private final boolean isRandomData = true;
     private final int usedChannels = isRandomData ? (int) rnd(16.0, 32.0) : 16;
     private final int packetsQuan = 1;
     private final byte[] packetData = new byte[18+usedChannels*8];
     private final byte[] dataArray = new byte[7+packetsQuan*(18+usedChannels*8)+1];
     private CRC8 crc = new CRC8();
-    private final byte flags = (byte) (0b10010000 & 0xFF);
+    private final byte flags = (byte) (0b00000000 & 0xFF);
 
 
     public byte[] getDataArray() {
