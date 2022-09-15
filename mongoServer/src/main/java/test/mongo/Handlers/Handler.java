@@ -46,7 +46,7 @@ public class Handler implements Runnable {
                     mongoTemplate.insert(receiveFrame.getPackets(), String.valueOf(receiveFrame.getImei()));
                     sendAnswer(packAnswer());
                 } else logger.info("CRC check failed for device " + receiveFrame.getImei());
-            } else logger.info("Error with " + receiveFrame.getImei());
+            } else logger.info("Attempt to send data from Device " + receiveFrame.getImei());
         } catch (Exception e) {
             e.printStackTrace();
         }
