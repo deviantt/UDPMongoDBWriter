@@ -9,21 +9,50 @@ import java.util.*;
 public class DataPacket {
 
     private final long imei;
-    private final boolean isRandomData = false;
-    private final int usedChannels = isRandomData ? (int) rnd(16.0, 32.0) : 16;
-    private final int packetsQuan = 1;
-    private final byte[] packetData = new byte[18+usedChannels*8];
-    private final byte[] dataArray = new byte[7+packetsQuan*(18+usedChannels*8)+1];
+    private final boolean isRandomData = false; // статичные или случайные данные в каналах и координатах
+    private final int usedChannels = isRandomData ? (int) rnd(16.0, 32.0) : 32; // количество каналов
+    private final int packetsQuan = 1; // количество пакетов
+    private final byte[] packetData;
+    private final byte[] dataArray;
     private CRC8 crc = new CRC8();
-    private final byte[] flagsMockArray = new byte[] {(byte) (0b00000000 & 0xFF), (byte) (0b10000000 & 0xFF), (byte) (0b00010000 & 0xFF), (byte) (0b10010000 & 0xFF)};
-    private final byte flags = isRandomData ? flagsMockArray[(int) rnd(0.0, 4.0)] : (byte) (0b00000000 & 0xFF);
+    private final byte[] flagsMockArray = new byte[] {(byte) (0b00000000 & 0xFF), (byte) (0b00001000 & 0xFF),
+            (byte) (0b00010000 & 0xFF), (byte) (0b00011000 & 0xFF)};
+    private final byte flags = isRandomData ? flagsMockArray[(int) rnd(0.0, 4.0)] : (byte) (0b00011000 & 0xFF); // флаги
+    // 00001000 TESTED 00011000 TESTED 00000000 TESTED 00010000 TESTED
 
 
     public byte[] getDataArray() {
         return dataArray;
     }
+    public int getPacketsQuan() { return packetsQuan; }
+    public int getUsedChannels() { return usedChannels; }
+    public byte getFlags() { return flags; }
 
     public DataPacket(long imei) throws InterruptedException {
+        byte[] packet;
+        byte[] data;
+        //TODO rework if else for flags
+        if ((flags & 0x08) == 0) {
+            if ((flags & 0x10) == 0) {
+                packet = new byte[18 + usedChannels * 8];
+                data = new byte[7 + packetsQuan * packet.length + 1];
+            } else {
+                packet = new byte[7 + usedChannels * 8];
+                data = new byte[7 + packetsQuan * packet.length + 1];
+            }
+        } else if ((flags & 0x10) == 0) {
+            packet = new byte[18];
+            data = new byte[7 + packetsQuan * packet.length + 1];
+        } else {
+            packet = new byte[6];
+            data = new byte[7 + packetsQuan * packet.length + 1];
+        }
+        if ((flags & 0x04) != 0) {
+            packet = new byte[packet.length + 4];
+            data = new byte[7 + packetsQuan * packet.length + 1];
+        }
+        this.dataArray = data;
+        this.packetData = packet;
         crc.reset();
         int command = 5;
         this.imei = imei;
@@ -32,7 +61,7 @@ public class DataPacket {
             for (int i = 0; i < packetsQuan; i++) {
                 try {
                     buildData();
-                    System.arraycopy(packetData, 0, dataArray, 7 + (i * (usedChannels * 8 + 18)), usedChannels * 8 + 18);
+                    System.arraycopy(packetData, 0, dataArray, 7 + (i * packetData.length), packetData.length);
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -42,32 +71,34 @@ public class DataPacket {
         Thread thread = new Thread(task);
         thread.start();
         thread.join();
-        if ((flags & 0x80) == 0) {
-            if ((flags & 0x10) == 0) {
-                crc.update(Arrays.copyOfRange(dataArray, 0, 7 + packetsQuan*(18+usedChannels*8)));
-                dataArray[7 + packetsQuan*(18+usedChannels*8)] = (byte) (crc.getValue() & 0xff);
-                //0 0
-            } else {
-                crc.update(Arrays.copyOfRange(dataArray, 0, 7 + packetsQuan*(7+usedChannels*8)));
-                dataArray[7 + packetsQuan*(7+usedChannels*8)] = (byte) (crc.getValue() & 0xff);
-                // 0 1
-            }
-        } else if ((flags & 0x10) == 0) {
-            crc.update(Arrays.copyOfRange(dataArray, 0, 7 + packetsQuan*18));
-            dataArray[7 + packetsQuan*18] = (byte) (crc.getValue() & 0xff);
-            // 1 0
-        } else {
-            crc.update(Arrays.copyOfRange(dataArray, 0, 7 + packetsQuan*7));
-            dataArray[7 + packetsQuan*7] = (byte) (crc.getValue() & 0xff);
-            // 1 1
-        }
+        crc.update(Arrays.copyOfRange(dataArray, 0, 7 + packetsQuan*packet.length));
+        dataArray[7 + packetsQuan*packet.length] = (byte) (crc.getValue() & 0xff);
+//        if ((flags & 0x08) == 0) {
+//            if ((flags & 0x10) == 0) {
+//                crc.update(Arrays.copyOfRange(dataArray, 0, 7 + packetsQuan*packet.length));
+//                dataArray[7 + packetsQuan*packet.length] = (byte) (crc.getValue() & 0xff);
+//                //0 0
+//            } else {
+//                crc.update(Arrays.copyOfRange(dataArray, 0, 7 + packetsQuan*packet.length));
+//                dataArray[7 + packetsQuan*packet.length] = (byte) (crc.getValue() & 0xff);
+//                // 0 1
+//            }
+//        } else if ((flags & 0x10) == 0) {
+//            crc.update(Arrays.copyOfRange(dataArray, 0, 7 + packetsQuan*packet.length));
+//            dataArray[7 + packetsQuan*packet.length] = (byte) (crc.getValue() & 0xff);
+//            // 1 0
+//        } else {
+//            crc.update(Arrays.copyOfRange(dataArray, 0, 7 + packetsQuan*packet.length));
+//            dataArray[7 + packetsQuan*packet.length] = (byte) (crc.getValue() & 0xff);
+//            // 1 1
+//        }
         long imei1 = 0;
         byte[] asd = Arrays.copyOfRange(dataArray, 0, 7);
         for(byte each : shiftRight(asd, 6)) {
             imei1 = (imei1 << 8) + (each & 0xFF);
         }
         System.out.println("Send IMEI: " + imei1 + " Packets quantity: " + (dataArray[6] & 0x07));
-        System.out.println("Send size: " + (7+packetsQuan*(18+usedChannels*8)));
+//        System.out.println("Send size: " + (7+packetsQuan*(18+usedChannels*8)));
     }
 
 
@@ -81,6 +112,15 @@ public class DataPacket {
         packLon();
         packAlt();
         packChannelsData();
+        packReserve();
+    }
+
+    private void packReserve() {
+        if ((flags & 0x04) > 0) {
+            for (int i = 1; i <= 4; i++) {
+                packetData[packetData.length - i] = 1;
+            }
+        }
     }
 
 
@@ -100,12 +140,14 @@ public class DataPacket {
     }
 
     private void packUsedChannels () {
-        if ((flags & 0x80) == 0) packetData[6] |= (byte) (usedChannels << 3);
+        if ((flags & 0x08) == 0) {
+            packetData[6] |= (byte) ((usedChannels-1) << 3);
+        }
     }
 
     private void packChannelsData() {
         int chDataStart = 0;
-        if ((flags & 0x80) == 0) {
+        if ((flags & 0x08) == 0) {
             if ((flags & 0x10) == 0) chDataStart = 18;
             else chDataStart = 7;
             for (int i = 0; i < usedChannels; i++) {

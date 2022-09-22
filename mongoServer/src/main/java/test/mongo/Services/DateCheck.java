@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import test.mongo.MongoApplication;
 
 import javax.annotation.PostConstruct;
@@ -17,6 +18,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 @Component
+@Service
 public class DateCheck {
 
     private final MongoTemplate mongoTemplate;
@@ -26,12 +28,13 @@ public class DateCheck {
         this.mongoTemplate = mongoTemplate;
     }
 
+//Debug
 //    @PostConstruct
 //    private void onStartup() {
 //        dateCheck();
 //    }
 
-    @Scheduled(cron = "0 0 10 * * MON", zone="GMT+5:00")
+    @Scheduled(cron = "0 0 10 ? * MON", zone="GMT+5:00") // каждый понедельник в 10:00 gmt+5
     private void dateCheck() {
         logger.info("Datecheck executed");
 

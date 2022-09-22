@@ -29,6 +29,8 @@ public class Packet {
     private Map<Integer, Long> analogs = new HashMap<>();
     @Field("CRD")
     private Coordinates coordinates = new Coordinates();
+    @Field("RSV")
+    private Integer reserve;
     @Transient
     private int packetSize;
 
@@ -38,7 +40,7 @@ public class Packet {
         stateFlags = data[4];
         measuredVoltage = (double) ((data[5] & 0xFF) + 100) / 10;
         int chDataStartAt;
-        if ((stateFlags & 0x10) > 0) {
+        if ((stateFlags & GPS_FLAG) > 0) {
             coordinates = null;
             chDataStartAt = 7;
             //GPS 1
@@ -54,13 +56,13 @@ public class Packet {
             chDataStartAt = 18;
             // GPS 0
         }
-        if ((stateFlags & 0x80) > 0) {
+        if ((stateFlags & CHANNELS_FLAG) > 0) {
             usedChannels = null;
             analogs = null;
             // CH 1
         }
         else {
-            usedChannels = ((data[6] >> 3) & 0x1F);
+            usedChannels = ((data[6] >> 3) & 0x1F) + 1;
             for (int i = 0; i < usedChannels ; i++) {
                 long currChannelData = bytesToLong(Arrays.copyOfRange(data, chDataStartAt, chDataStartAt + 8), 8);
                 analogs.put(i, currChannelData);
@@ -68,7 +70,9 @@ public class Packet {
             }
             // CH 0
         }
-
+        if ((stateFlags & RESERVE_FLAG) > 0)
+            reserve = (int) getLongFromByte(data, data.length - 4, 4);
+        else reserve = null;
     }
 
     private static long bytesToLong(final byte[] b, int bytes) {

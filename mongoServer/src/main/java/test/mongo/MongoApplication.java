@@ -37,7 +37,7 @@ public class MongoApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) {
-		ExecutorService executorService = Executors.newFixedThreadPool(5);
+		ExecutorService executorService = Executors.newFixedThreadPool(8);
 		try (DatagramSocket serverSocket = new DatagramSocket(RCV_PORT);) {
 			logger.info("Listening on udp: " + InetAddress.getLocalHost().getHostAddress() + ":" +  RCV_PORT);
 			while (true) {

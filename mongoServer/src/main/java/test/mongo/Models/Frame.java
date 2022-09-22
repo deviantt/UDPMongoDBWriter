@@ -33,21 +33,22 @@ public class Frame {
         int realPacketSize;
         for (int i = 0; i < packetsQuan; i++) {
             int stateFlag = data[cursor + 4];
-            if ((stateFlag & 0x80) == 0) {
-                if ((stateFlag & 0x10) == 0) {
-                    realPacketSize = 18 + (((data[cursor + 6] >>> 3) & 0x1F) * CHANNEL_SIZE);
+            if ((stateFlag & CHANNELS_FLAG) == 0) {
+                if ((stateFlag & GPS_FLAG) == 0) {
+                    realPacketSize = 18 + ((((data[cursor + 6] >>> 3) & 0x1F) + 1) * CHANNEL_SIZE);
                     //0 0
                 } else {
-                    realPacketSize = 7 + (((data[cursor + 6] >>> 3) & 0x1F) * CHANNEL_SIZE);
+                    realPacketSize = 7 + ((((data[cursor + 6] >>> 3) & 0x1F) + 1) * CHANNEL_SIZE);
                     // 0 1
                 }
-            } else if ((stateFlag & 0x10) == 0) {
+            } else if ((stateFlag & GPS_FLAG) == 0) {
                 realPacketSize = 18;
                 // 1 0
             } else {
-                realPacketSize = 7;
+                realPacketSize = 6;
                 // 1 1
             }
+            realPacketSize = (stateFlag & 0x04) > 0 ? realPacketSize + 4 : realPacketSize;
             Packet r1 = new Packet(Arrays.copyOfRange(data, cursor, cursor + realPacketSize));
             allPacketsSize += r1.getPacketSize();
             packets.add(r1);
