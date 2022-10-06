@@ -40,13 +40,13 @@ public class Handler implements Runnable {
         crc8.reset();
         crc8.update(Arrays.copyOfRange(receivePacket.getData(), 0, receiveFrame.getFrameSize()));
         try {
-//            if (mongoTemplate.exists(query, "Devices")) {
+            if (mongoTemplate.exists(query, "Devices")) {
                 if (receivePacket.getData()[receiveFrame.getFrameSize()] == (byte) (crc8.getValue() & 0xff)) {
                     mongoTemplate.indexOps(String.valueOf(receiveFrame.getImei())).ensureIndex(new Index("TIM", Sort.Direction.DESC).unique());
                     mongoTemplate.insert(receiveFrame.getPackets(), String.valueOf(receiveFrame.getImei()));
                     sendAnswer(packAnswer());
                 } else logger.info("CRC check failed for device " + receiveFrame.getImei());
-//            } else logger.info("Attempt to send data from Device " + receiveFrame.getImei());
+            } else logger.info("Attempt to send data from Device " + receiveFrame.getImei());
         } catch (Exception e) {
             e.printStackTrace();
         }

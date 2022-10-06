@@ -65,7 +65,7 @@ public class Packet {
             usedChannels = ((data[6] >> 3) & 0x1F) + 1;
             for (int i = 0; i < usedChannels ; i++) {
                 long currChannelData = bytesToLong(Arrays.copyOfRange(data, chDataStartAt, chDataStartAt + 8), 8);
-                analogs.put(i, currChannelData);
+                analogs.put(i + 1, currChannelData);
                 chDataStartAt += 8;
             }
             // CH 0

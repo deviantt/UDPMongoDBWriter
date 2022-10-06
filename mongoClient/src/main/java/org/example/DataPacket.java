@@ -10,14 +10,14 @@ public class DataPacket {
 
     private final long imei;
     private final boolean isRandomData = false; // статичные или случайные данные в каналах и координатах
-    private final int usedChannels = isRandomData ? (int) rnd(16.0, 32.0) : 32; // количество каналов
+    private final int usedChannels = isRandomData ? (int) rnd(16.0, 32.0) : 16; // количество каналов
     private final int packetsQuan = 1; // количество пакетов
     private final byte[] packetData;
     private final byte[] dataArray;
     private CRC8 crc = new CRC8();
     private final byte[] flagsMockArray = new byte[] {(byte) (0b00000000 & 0xFF), (byte) (0b00001000 & 0xFF),
             (byte) (0b00010000 & 0xFF), (byte) (0b00011000 & 0xFF)};
-    private final byte flags = isRandomData ? flagsMockArray[(int) rnd(0.0, 4.0)] : (byte) (0b00011000 & 0xFF); // флаги
+    private final byte flags = isRandomData ? flagsMockArray[(int) rnd(0.0, 4.0)] : (byte) (0b00000000 & 0xFF); // флаги
     // 00001000 TESTED 00011000 TESTED 00000000 TESTED 00010000 TESTED
 
 
